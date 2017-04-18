@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:oauth2="http://www.springframework.org/schema/security/oauth2"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/security
+            http://www.springframework.org/schema/security/spring-security.xsd
+            http://www.springframework.org/schema/security/oauth2
+            http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
+
+
+    <!--spring security 配置 -->
+
+    <!--token 存储方式  InMemoryTokenStore内存  JDBC  jwt 等方式-->
+    <bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore"/>
+    <!--token 业务处理 这里用默认的  可以自定义-->
+    <bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+        <property name="tokenStore" ref="tokenStore"/>
+        <property name="supportRefreshToken" value="true"/>
+        <property name="clientDetailsService" ref="clientDetailsService"/>
+    </bean>
+
+    <!--client  认证接入点 -->
+    <bean id="clientAuthenticationEntryPoint"
+          class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint"/>
+    <!--访问拒绝的handler -->
+    <bean id="accessDeniedHandler"
+          class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler"/>
+
+    <!--A default user approval handler that doesn't remember any decisions.-->
+    <bean id="userApprovalHandler"
+          class="org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler"/>
+
+    <!---clientdetails =-->
+    <!--<bean id="clientDetailsService" class="com.flysand.web.**"/>-->
+    <oauth2:client-details-service id="clientDetailsService">
+        <oauth2:client client-id="client" authorized-grant-types="password" authorities="IS_AUTHENTICATED_FULLY"
+                       secret="secret" scope="read,write,trust"/>
+        <oauth2:client client-id="test1" authorities="IS_AUTHENTICATED_FULLY" authorized-grant-types="password" secret="123456" scope="read"/>
+        <oauth2:client client-id="test" authorities="ROLE_USER" authorized-grant-types="password" secret="123456" scope="read"/>
+        <oauth2:client client-id="user" authorities="ROLE_USER" authorized-grant-types="password" secret="user" scope="read,write"/>
+    </oauth2:client-details-service>
+    <!--<bean id="clientDetailsService" class="com.flysand.oauth.MyClientDetailsService"/>-->
+
+
+    <bean id="clientDetailsUserDetailsService"
+          class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+        <constructor-arg ref="clientDetailsService"/>
+    </bean>
+
+    <!--client 认证 管理器 -->
+    <security:authentication-manager id="clientAuthenticationManager">
+        <security:authentication-provider user-service-ref="clientDetailsUserDetailsService"/>
+    </security:authentication-manager>
+
+    <!--client credential endpoint filter
+    A filter and authentication endpoint for the OAuth2 Token Endpoint-->
+    <bean id="clientCredentialsTokenEndpointFilter"
+          class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
+        <property name="authenticationManager" ref="clientAuthenticationManager"/>
+    </bean>
+
+
+    <!-- oauth2 授权服务器 -->
+    <oauth2:authorization-server client-details-service-ref="clientDetailsService"
+                                 token-services-ref="tokenServices" user-approval-handler-ref="userApprovalHandler">
+        <oauth2:authorization-code/>
+        <oauth2:implicit/>
+        <oauth2:refresh-token/>
+        <oauth2:client-credentials/>
+        <oauth2:password authentication-manager-ref="authenticationManager" />
+    </oauth2:authorization-server>
+
+    <!--http
+    stateless 无状态session，默认create，每次都创建session会给服务器压力很大，
+    不保存session状态，每次访问需要重新认证，即带user token
+    详解http://www.cnblogs.com/Mainz/archive/2013/08/01/3230077.html-->
+    <security:http pattern="/oauth/token" create-session="stateless"
+                   authentication-manager-ref="clientAuthenticationManager">
+        <security:intercept-url pattern="/oauth/token" access="hasRole('ROLE_USER')"/>
+        <!--spring security 4 默认添加csrfFilter过滤器，限制所有post请求-->
+        <security:csrf request-matcher-ref="csrfSecurityRequestMatcher"/>
+        <security:anonymous enabled="false"/>
+        <security:http-basic entry-point-ref="clientAuthenticationEntryPoint"/>
+        <security:custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER"/>
+        <security:access-denied-handler ref="accessDeniedHandler"/>
+    </security:http>
+
+    <!--自定义requestMatcher用于解除list列表里的post请求的限制-->
+    <bean id="csrfSecurityRequestMatcher" class="com.flysand.matcher.CsrfSecurityMatcher">
+        <property name="execludeUrls">
+            <list>
+                <value>/oauth/</value>
+            </list>
+        </property>
+    </bean>
+    <!-- user setting -->
+    <!--<bean id="userService" class="com.flysand.service.UserService"/>-->
+
+    <security:authentication-manager id="authenticationManager">
+        <!--<security:authentication-provider user-service-ref="userService">
+            &lt;!&ndash;用户角色权限信息配置在userService里&ndash;&gt;
+        </security:authentication-provider>-->
+        <!--<security:authentication-provider>
+            <security:user-service>
+                &lt;!&ndash;指定当前用户的信息及权限&ndash;&gt;
+                <security:user name="user" authorities="ROLE_USER" password="user"/>
+                <security:user name="admin" authorities="IS_AUTHENTICATED_FULLY" password="admin"/>
+                <security:user name="test1" authorities="IS_AUTHENTICATED_FULLY" password="123456"/>
+            </security:user-service>
+        </security:authentication-provider>-->
+        <security:authentication-provider user-service-ref="userService">
+
+        </security:authentication-provider>
+    </security:authentication-manager>
+    <bean id="userService" class="com.flysand.oauth.MyUserService"/>
+
+    <!--资源服务器-->
+    <oauth2:resource-server id="myResourceService" resource-id="myresource" token-services-ref="tokenServices"/>
+
+    <!--访问决策管理器-->
+    <!--决策投票器 AffirmativeBased 一票通过 ConsensusBased少数服从多数 UnanimousBased全票通过
+     其中 ConsensusBased少数服从多数——当投票数相等时，
+     默认的private boolean allowIfEqualGrantedDeniedDecisions = true属性起作用，即只要不为0默认验证通过-->
+    <!--<bean id="accessDecisionManager" class="org.springframework.security.access.vote.UnanimousBased">
+        <constructor-arg>
+            <list>
+                &lt;!&ndash;投票器（权限验证规则），RoleVoter验证角色，AuthenticatedVoter当角色不存在时验证，
+                包括IS_AUTHENTICATED_FULLY，IS_AUTHENTICATED_REMEMBERED，IS_AUTHENTICATED_ANONYMOUSLY
+                WebExpressionVoter表达式投票器，必须设置，不然自定义的&ndash;&gt;
+                <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
+                <bean class="org.springframework.security.access.vote.RoleVoter"/>
+                <bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>
+            </list>
+        </constructor-arg>
+    </bean>-->
+    <!--自定义accessDecisionManager-->
+    <bean id="accessDecisionManager" class="com.flysand.access.MyAccessDecisionManager">
+        <constructor-arg>
+            <list>
+                <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!--资源http配置-->
+    <security:http pattern="/abcs/**" create-session="never" entry-point-ref="clientAuthenticationEntryPoint"
+                   access-decision-manager-ref="accessDecisionManager">
+        <security:anonymous enabled="false"/>
+        <security:intercept-url pattern="/abcs/**" access="hasRole('ROLE_USER')"/>
+        <security:custom-filter ref="myResourceService" before="PRE_AUTH_FILTER"/>
+        <security:access-denied-handler ref="accessDeniedHandler"/>
+    </security:http>
+
+
+
+</beans>

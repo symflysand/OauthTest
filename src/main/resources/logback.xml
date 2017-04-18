@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<configuration>
+    <property name="log.base" value="logs"/>
+    <property name="log.module" value="web"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%-5level] [%F\(%M\):%L] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.base}/myweb-${log.module}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.base}/myweb-${log.module}.%d{yyyyMMdd}.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%thread] [%-5level] %logger{10} [%F\(%M\):%L] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="file"/>
+    </root>
+
+    <logger name="com.flysand" level="debug"/>
+    <logger name="org.mybatis" level="info"/>
+    <logger name="org.springframework" level="debug"/>
+</configuration>
