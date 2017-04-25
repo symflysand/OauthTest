@@ -15,13 +15,13 @@
 
             $('#ajax').click(function () {
                 var url = "user/getUsers";
-                url = 'user/add';
+                url = 'user/addMOUser';
                 $.ajax({
                     type:'post',
                     url:url,
                     dataType:'json',
                     //data:'pageIndex=1&pageSize=5',
-                    data:'username=admin',
+                    data:'username=user&password=123',
                     success:function(data){
                         if(data.value==true){
                             alert("添加成功");

@@ -1,5 +1,6 @@
 package com.flysand.access;
 
+import com.flysand.oauth.MyUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDecisionVoter;
@@ -39,7 +40,7 @@ public class MyAccessDecisionManager extends AbstractAccessDecisionManager {
      */
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
 
-        User user = (User) authentication.getPrincipal();
+        MyUserDetails user = (MyUserDetails) authentication.getPrincipal();
         logger.debug("visit user:"+user.getUsername());
 
         //如果当前资源不需要特殊权限

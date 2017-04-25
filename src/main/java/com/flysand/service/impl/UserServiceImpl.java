@@ -1,10 +1,17 @@
 package com.flysand.service.impl;
 
+import com.flysand.dao.MOUserMapper;
 import com.flysand.dao.TUserMapper;
+import com.flysand.model.entity.MOUser;
 import com.flysand.model.entity.TUser;
+import com.flysand.model.object.UserDetail;
+import com.flysand.model.type.StatusType;
 import com.flysand.service.UserService;
+import com.flysand.util.UIDUtil;
 import com.github.pagehelper.PageHelper;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +26,12 @@ import java.util.UUID;
 @Service("UserService")
 public class UserServiceImpl implements UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
     @Autowired
     private TUserMapper userMapper;
+    @Autowired
+    private MOUserMapper moUserMapper;
 
     @Transactional
     public int addUser(String username) {
@@ -48,5 +59,27 @@ public class UserServiceImpl implements UserService {
         PageHelper.startPage(pageIndex, pageSize);
         List<TUser> users = userMapper.getUsers();
         return users;
+    }
+
+    public int addMOUser(String username, String password) {
+        MOUser moUser = new MOUser();
+        moUser.setUid(UIDUtil.createUid(username));
+        moUser.setUsername(username);
+        String saltKey = UIDUtil.createUid();
+        moUser.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(password)+saltKey));
+        moUser.setSaltKey(saltKey);
+        moUser.setStatus(StatusType.NORMAL.toString());
+        int count = -1;
+        try {
+            count = moUserMapper.insert(moUser);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+        }
+
+        return count;
+    }
+
+    public List<UserDetail> getUserDetailByUserName(String username) {
+        return moUserMapper.selectByUserName(username);
     }
 }

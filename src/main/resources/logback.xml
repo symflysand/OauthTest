@@ -26,6 +26,7 @@
     </root>
 
     <logger name="com.flysand" level="debug"/>
-    <logger name="org.mybatis" level="info"/>
+    <logger name="org.mybatis" level="debug"/>
     <logger name="org.springframework" level="debug"/>
+    <logger name="redis.clients" level="debug"/>
 </configuration>

@@ -27,6 +27,7 @@ public class UserController {
     private UserService userService;
 
 
+
     /**
      * 增加用户
      *
@@ -56,6 +57,17 @@ public class UserController {
         return userService.getUsers(pageIndex,pageSize);
     }
 
-
+    @ResponseBody
+    @RequestMapping(value = "/addMOUser",method = RequestMethod.POST)
+    public BooleanValue addMOUser(String username,String password){
+        BooleanValue booleanValue = new BooleanValue();
+        int result = userService.addMOUser(username,password);
+        if(result>0){
+            booleanValue.setValue(true);
+        }else {
+            booleanValue.setValue(false);
+        }
+        return booleanValue;
+    }
 
 }

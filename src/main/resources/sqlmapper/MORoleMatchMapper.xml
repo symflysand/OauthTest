@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flysand.dao.MORoleMatchMapper">
+  <resultMap id="BaseResultMap" type="com.flysand.model.entity.MORoleMatch">
+    <id column="mid" jdbcType="INTEGER" property="mid" />
+    <result column="match_id" jdbcType="VARCHAR" property="matchId" />
+    <result column="role_id" jdbcType="INTEGER" property="roleId" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    mid, match_id, role_id, status
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from mo_role_match
+    where mid = #{mid,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from mo_role_match
+    where mid = #{mid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.flysand.model.entity.MORoleMatch">
+    insert into mo_role_match (mid, match_id, role_id, 
+      status)
+    values (#{mid,jdbcType=INTEGER}, #{matchId,jdbcType=VARCHAR}, #{roleId,jdbcType=INTEGER}, 
+      #{status,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.flysand.model.entity.MORoleMatch">
+    insert into mo_role_match
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="mid != null">
+        mid,
+      </if>
+      <if test="matchId != null">
+        match_id,
+      </if>
+      <if test="roleId != null">
+        role_id,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="mid != null">
+        #{mid,jdbcType=INTEGER},
+      </if>
+      <if test="matchId != null">
+        #{matchId,jdbcType=VARCHAR},
+      </if>
+      <if test="roleId != null">
+        #{roleId,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.flysand.model.entity.MORoleMatch">
+    update mo_role_match
+    <set>
+      <if test="matchId != null">
+        match_id = #{matchId,jdbcType=VARCHAR},
+      </if>
+      <if test="roleId != null">
+        role_id = #{roleId,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where mid = #{mid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.flysand.model.entity.MORoleMatch">
+    update mo_role_match
+    set match_id = #{matchId,jdbcType=VARCHAR},
+      role_id = #{roleId,jdbcType=INTEGER},
+      status = #{status,jdbcType=VARCHAR}
+    where mid = #{mid,jdbcType=INTEGER}
+  </update>
+</mapper>

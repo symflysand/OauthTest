@@ -14,9 +14,20 @@
 
     <!--token 存储方式  InMemoryTokenStore内存  JDBC  jwt 等方式-->
     <bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore"/>
+    <bean id="jedisShardInfo" class="redis.clients.jedis.JedisShardInfo">
+        <constructor-arg index="0" value="localhost"/>
+        <constructor-arg index="1" value="6379"/>
+    </bean>
+    <bean id="redisConnection" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="shardInfo" ref="jedisShardInfo"/>
+    </bean>
+    <bean id="redisTokenStore" class="org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore">
+        <constructor-arg ref="redisConnection"/>
+    </bean>
     <!--token 业务处理 这里用默认的  可以自定义-->
     <bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
-        <property name="tokenStore" ref="tokenStore"/>
+        <!--<property name="tokenStore" ref="tokenStore"/>-->
+        <property name="tokenStore" ref="redisTokenStore"/>
         <property name="supportRefreshToken" value="true"/>
         <property name="clientDetailsService" ref="clientDetailsService"/>
     </bean>
@@ -34,25 +45,36 @@
 
     <!---clientdetails =-->
     <!--<bean id="clientDetailsService" class="com.flysand.web.**"/>-->
-    <oauth2:client-details-service id="clientDetailsService">
+    <!--<oauth2:client-details-service id="clientDetailsService">
         <oauth2:client client-id="client" authorized-grant-types="password" authorities="IS_AUTHENTICATED_FULLY"
                        secret="secret" scope="read,write,trust"/>
         <oauth2:client client-id="test1" authorities="IS_AUTHENTICATED_FULLY" authorized-grant-types="password" secret="123456" scope="read"/>
         <oauth2:client client-id="test" authorities="ROLE_USER" authorized-grant-types="password" secret="123456" scope="read"/>
         <oauth2:client client-id="user" authorities="ROLE_USER" authorized-grant-types="password" secret="user" scope="read,write"/>
-    </oauth2:client-details-service>
-    <!--<bean id="clientDetailsService" class="com.flysand.oauth.MyClientDetailsService"/>-->
+    </oauth2:client-details-service>-->
+    <bean id="clientDetailsService" class="com.flysand.oauth.MyClientDetailsService"/>
 
 
-    <bean id="clientDetailsUserDetailsService"
+    <!--<bean id="clientDetailsUserDetailsService"
           class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+        <constructor-arg ref="clientDetailsService"/>
+    </bean>-->
+    <bean id="clientDetailsUserDetailsService"
+          class="com.flysand.oauth.MyClientDetailsUserDetailsService">
         <constructor-arg ref="clientDetailsService"/>
     </bean>
 
     <!--client 认证 管理器 -->
-    <security:authentication-manager id="clientAuthenticationManager">
+    <!--<security:authentication-manager id="clientAuthenticationManager">
         <security:authentication-provider user-service-ref="clientDetailsUserDetailsService"/>
+    </security:authentication-manager>-->
+    <security:authentication-manager id="clientAuthenticationManager">
+        <security:authentication-provider ref="clientAuthenticationProvider"/>
     </security:authentication-manager>
+
+    <bean id="clientAuthenticationProvider" class="com.flysand.oauth.MyClientAuthenticationProvider">
+        <property name="userDetailsService" ref="clientDetailsUserDetailsService"/>
+    </bean>
 
     <!--client credential endpoint filter
     A filter and authentication endpoint for the OAuth2 Token Endpoint-->
@@ -110,11 +132,13 @@
                 <security:user name="test1" authorities="IS_AUTHENTICATED_FULLY" password="123456"/>
             </security:user-service>
         </security:authentication-provider>-->
-        <security:authentication-provider user-service-ref="userService">
+        <security:authentication-provider ref="myAuthenticationProvider"/>
 
-        </security:authentication-provider>
     </security:authentication-manager>
-    <bean id="userService" class="com.flysand.oauth.MyUserService"/>
+    <bean id="userService" class="com.flysand.oauth.MyUserDetailsService"/>
+    <bean id="myAuthenticationProvider" class="com.flysand.oauth.MyAuthenticationProvider">
+        <property name="userDetailsService" ref="userService"/>
+    </bean>
 
     <!--资源服务器-->
     <oauth2:resource-server id="myResourceService" resource-id="myresource" token-services-ref="tokenServices"/>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flysand.dao.MOClientMapper">
+  <resultMap id="BaseResultMap" type="com.flysand.model.entity.MOClient">
+    <id column="cid" jdbcType="VARCHAR" property="cid" />
+    <result column="client_id" jdbcType="VARCHAR" property="clientId" />
+    <result column="client_secret" jdbcType="VARCHAR" property="clientSecret" />
+    <result column="salt_key" jdbcType="VARCHAR" property="saltKey" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    cid, client_id, client_secret, salt_key, status
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from mo_client
+    where cid = #{cid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from mo_client
+    where cid = #{cid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.flysand.model.entity.MOClient">
+    insert into mo_client (cid, client_id, client_secret, 
+      salt_key, status)
+    values (#{cid,jdbcType=VARCHAR}, #{clientId,jdbcType=VARCHAR}, #{clientSecret,jdbcType=VARCHAR}, 
+      #{saltKey,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.flysand.model.entity.MOClient">
+    insert into mo_client
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="cid != null">
+        cid,
+      </if>
+      <if test="clientId != null">
+        client_id,
+      </if>
+      <if test="clientSecret != null">
+        client_secret,
+      </if>
+      <if test="saltKey != null">
+        salt_key,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="cid != null">
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="clientId != null">
+        #{clientId,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSecret != null">
+        #{clientSecret,jdbcType=VARCHAR},
+      </if>
+      <if test="saltKey != null">
+        #{saltKey,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.flysand.model.entity.MOClient">
+    update mo_client
+    <set>
+      <if test="clientId != null">
+        client_id = #{clientId,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSecret != null">
+        client_secret = #{clientSecret,jdbcType=VARCHAR},
+      </if>
+      <if test="saltKey != null">
+        salt_key = #{saltKey,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where cid = #{cid,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.flysand.model.entity.MOClient">
+    update mo_client
+    set client_id = #{clientId,jdbcType=VARCHAR},
+      client_secret = #{clientSecret,jdbcType=VARCHAR},
+      salt_key = #{saltKey,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR}
+    where cid = #{cid,jdbcType=VARCHAR}
+  </update>
+
+  <select id="selectByClientId" parameterType="java.lang.String" resultType="com.flysand.model.object.ClientDetail">
+    select a.client_id as clientId,a.client_secret as clientSecret,c.role_name as roleName,a.salt_key as saltKey,a.status as status from mo_client a
+    left join mo_role_match b on a.cid = b.match_id
+    left join mo_role c on b.role_id = c.role_id
+    where a.client_id= #{clientId,jdbcType=VARCHAR}
+  </select>
+</mapper>
