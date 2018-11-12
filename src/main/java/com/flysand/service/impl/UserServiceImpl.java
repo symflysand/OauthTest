@@ -5,9 +5,10 @@ import com.flysand.dao.TUserMapper;
 import com.flysand.model.entity.MOUser;
 import com.flysand.model.entity.TUser;
 import com.flysand.model.object.UserDetail;
+import com.flysand.model.type.ErrorMsg;
 import com.flysand.model.type.StatusType;
 import com.flysand.service.UserService;
-import com.flysand.util.UIDUtil;
+import com.flysand.util.UUIDUtil;
 import com.github.pagehelper.PageHelper;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -63,9 +64,9 @@ public class UserServiceImpl implements UserService {
 
     public int addMOUser(String username, String password) {
         MOUser moUser = new MOUser();
-        moUser.setUid(UIDUtil.createUid(username));
+        moUser.setUid(UUIDUtil.createUid(username));
         moUser.setUsername(username);
-        String saltKey = UIDUtil.createUid();
+        String saltKey = UUIDUtil.createUid();
         moUser.setPassword(DigestUtils.md5Hex(DigestUtils.md5Hex(password)+saltKey));
         moUser.setSaltKey(saltKey);
         moUser.setStatus(StatusType.NORMAL.toString());
@@ -82,4 +83,18 @@ public class UserServiceImpl implements UserService {
     public List<UserDetail> getUserDetailByUserName(String username) {
         return moUserMapper.selectByUserName(username);
     }
+
+    public ErrorMsg login(String username,String password){
+
+        TUser user = userMapper.selectByUserName(username);
+        if(user==null){
+            return ErrorMsg.FAILED;
+        }
+        if (!user.getPassword().equals(DigestUtils.md5Hex(password))){
+            return ErrorMsg.FAILED;
+        }
+        return ErrorMsg.SUCCESS;
+
+    }
+
 }

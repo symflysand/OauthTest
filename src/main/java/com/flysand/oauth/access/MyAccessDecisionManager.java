@@ -1,6 +1,6 @@
-package com.flysand.access;
+package com.flysand.oauth.access;
 
-import com.flysand.oauth.MyUserDetails;
+import com.flysand.oauth.userDetails.MyUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDecisionVoter;
@@ -10,14 +10,13 @@ import org.springframework.security.access.vote.AbstractAccessDecisionManager;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
  * Title:MyAccessDecisionManager.java
- * Location:com.flysand.access
+ * Location:com.flysand.oauth.access
  * Author:flysand
  * Date:2017年04月14 17:59:40
  * Description:

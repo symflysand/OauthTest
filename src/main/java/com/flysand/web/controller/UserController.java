@@ -2,6 +2,7 @@ package com.flysand.web.controller;
 
 import com.flysand.model.common.BooleanValue;
 import com.flysand.model.entity.TUser;
+import com.flysand.model.type.ErrorMsg;
 import com.flysand.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,20 @@ public class UserController {
             booleanValue.setValue(false);
         }
         return booleanValue;
+    }
+
+    /**
+     * 用户登录，写这个方法的目的主要是为了测https时是不是登录的信息在页面上不显示，结果发现https其实就是加一个证书，意思就是有证书的人就是信任授权的人
+     * 可以跟一般的http请求一样进行操作，加了https的意义在于外部攻击人员，无法知道证书内容因此无法查看传输数据
+     * @param username 用户名
+     * @param password 密码
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/login",method = RequestMethod.POST)
+    public ErrorMsg login(@RequestParam String username,@RequestParam String password){
+        logger.debug("username "+ username + " login");
+        return userService.login(username,password);
     }
 
 }

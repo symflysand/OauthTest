@@ -1,6 +1,5 @@
-package com.flysand.oauth;
+package com.flysand.oauth.userDetails;
 
-import com.flysand.model.entity.MOClient;
 import com.flysand.model.object.ClientDetail;
 import com.flysand.service.ClientService;
 import org.slf4j.Logger;
@@ -8,12 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.config.annotation.builders.ClientDetailsServiceBuilder;
-import org.springframework.security.oauth2.config.annotation.builders.InMemoryClientDetailsServiceBuilder;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package com.flysand.oauth;
+package com.flysand.oauth.userDetails;
 
 import com.flysand.model.type.StatusType;
 import org.springframework.security.core.GrantedAuthority;

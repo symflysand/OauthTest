@@ -3,6 +3,7 @@ package com.flysand.service;
 
 import com.flysand.model.entity.TUser;
 import com.flysand.model.object.UserDetail;
+import com.flysand.model.type.ErrorMsg;
 
 import java.util.List;
 
@@ -20,4 +21,5 @@ public interface UserService {
 
     List<UserDetail> getUserDetailByUserName(String username);
 
+    ErrorMsg login(String username,String password);
 }

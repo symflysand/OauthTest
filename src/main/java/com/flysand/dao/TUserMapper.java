@@ -1,6 +1,7 @@
 package com.flysand.dao;
 
 import com.flysand.model.entity.TUser;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface TUserMapper {
     int updateByPrimaryKey(TUser record);
 
     List<TUser> getUsers();
+
+    TUser selectByUserName(@Param("username") String username);
 }
