@@ -13,10 +13,14 @@
     <!--spring security 配置 -->
 
     <!--token 存储方式  InMemoryTokenStore内存  JDBC  jwt 等方式-->
+    <!--memory token store-->
     <bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore"/>
+    <!--redis token store start -->
     <bean id="jedisShardInfo" class="redis.clients.jedis.JedisShardInfo">
-        <constructor-arg index="0" value="localhost"/>
-        <constructor-arg index="1" value="6379"/>
+        <!--<constructor-arg index="0" value="localhost"/>
+        <constructor-arg index="1" value="6379"/>-->
+        <constructor-arg name="host" value="localhost"/>
+        <constructor-arg name="port" value="6379"/>
     </bean>
     <bean id="redisConnection" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
         <property name="shardInfo" ref="jedisShardInfo"/>
@@ -24,13 +28,35 @@
     <bean id="redisTokenStore" class="org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore">
         <constructor-arg ref="redisConnection"/>
     </bean>
-    <!--token 业务处理 这里用默认的  可以自定义-->
-    <bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
-        <!--<property name="tokenStore" ref="tokenStore"/>-->
-        <property name="tokenStore" ref="redisTokenStore"/>
+    <!--redis token store end-->
+
+    <!--jwt token store start-->
+    <bean id="jwtTokenConverter" class="org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter"/>
+    <bean id="jwtTokenStore" class="org.springframework.security.oauth2.provider.token.store.JwtTokenStore">
+        <constructor-arg ref="jwtTokenConverter"/>
+    </bean>
+    <!--jwt token store end-->
+    
+    <!--my token store start-->
+    <bean id="myTokenStore" class="com.flysand.oauth.token.store.MyTokenStore"/>
+    <!--my token store end-->
+    
+    <!--my token services start-->
+    <bean id="tokenServices" class="com.flysand.oauth.token.MyTokenServices">
+        <property name="tokenStore" ref="myTokenStore"/>
         <property name="supportRefreshToken" value="true"/>
         <property name="clientDetailsService" ref="clientDetailsService"/>
     </bean>
+    <!--my token services end -->
+    
+    <!--token 业务处理 这里用默认的  可以自定义-->
+    <!--<bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+        &lt;!&ndash;<property name="tokenStore" ref="tokenStore"/>&ndash;&gt;
+        &lt;!&ndash;<property name="tokenStore" ref="redisTokenStore"/>&ndash;&gt;
+        <property name="tokenStore" ref="jwtTokenStore"/>
+        <property name="supportRefreshToken" value="true"/>
+        <property name="clientDetailsService" ref="clientDetailsService"/>
+    </bean>-->
 
     <!--client  认证接入点 -->
     <bean id="clientAuthenticationEntryPoint"
@@ -52,7 +78,7 @@
         <oauth2:client client-id="test" authorities="ROLE_USER" authorized-grant-types="password" secret="123456" scope="read"/>
         <oauth2:client client-id="user" authorities="ROLE_USER" authorized-grant-types="password" secret="user" scope="read,write"/>
     </oauth2:client-details-service>-->
-    <bean id="clientDetailsService" class="com.flysand.oauth.MyClientDetailsService"/>
+    <bean id="clientDetailsService" class="com.flysand.oauth.userDetails.MyClientDetailsService"/>
 
 
     <!--<bean id="clientDetailsUserDetailsService"
@@ -60,7 +86,7 @@
         <constructor-arg ref="clientDetailsService"/>
     </bean>-->
     <bean id="clientDetailsUserDetailsService"
-          class="com.flysand.oauth.MyClientDetailsUserDetailsService">
+          class="com.flysand.oauth.userDetails.MyClientDetailsUserDetailsService">
         <constructor-arg ref="clientDetailsService"/>
     </bean>
 
@@ -72,7 +98,7 @@
         <security:authentication-provider ref="clientAuthenticationProvider"/>
     </security:authentication-manager>
 
-    <bean id="clientAuthenticationProvider" class="com.flysand.oauth.MyClientAuthenticationProvider">
+    <bean id="clientAuthenticationProvider" class="com.flysand.oauth.provider.MyClientAuthenticationProvider">
         <property name="userDetailsService" ref="clientDetailsUserDetailsService"/>
     </bean>
 
@@ -135,8 +161,8 @@
         <security:authentication-provider ref="myAuthenticationProvider"/>
 
     </security:authentication-manager>
-    <bean id="userService" class="com.flysand.oauth.MyUserDetailsService"/>
-    <bean id="myAuthenticationProvider" class="com.flysand.oauth.MyAuthenticationProvider">
+    <bean id="userService" class="com.flysand.oauth.userDetails.MyUserDetailsService"/>
+    <bean id="myAuthenticationProvider" class="com.flysand.oauth.provider.MyAuthenticationProvider">
         <property name="userDetailsService" ref="userService"/>
     </bean>
 
@@ -160,7 +186,7 @@
         </constructor-arg>
     </bean>-->
     <!--自定义accessDecisionManager-->
-    <bean id="accessDecisionManager" class="com.flysand.access.MyAccessDecisionManager">
+    <bean id="accessDecisionManager" class="com.flysand.oauth.access.MyAccessDecisionManager">
         <constructor-arg>
             <list>
                 <bean class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
